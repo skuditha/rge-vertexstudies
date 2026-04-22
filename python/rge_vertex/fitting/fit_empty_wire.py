@@ -9,7 +9,11 @@ import numpy as np
 import pandas as pd
 
 from rge_vertex.fitting.binned_fit import BinnedFitResult, fit_four_gaussians_chi2
-from rge_vertex.fitting.models import gaussian_counts_at_centers, multi_gaussian_counts
+from rge_vertex.fitting.models import (
+    gaussian_counts_at_centers,
+    model_counts,
+    poly2_background_counts,
+)
 from rge_vertex.plotting.histograms import HistogramResult, collect_vz_histogram
 
 
@@ -35,11 +39,22 @@ def _component_model(
     )
 
 
+def _background_model(hist: HistogramResult, fit_result: BinnedFitResult) -> np.ndarray:
+    p = fit_result.values
+    return poly2_background_counts(
+        hist.centers,
+        c0=p.get("bkg_c0", 0.0),
+        c1=p.get("bkg_c1", 0.0),
+        c2=p.get("bkg_c2", 0.0),
+    )
+
+
 def plot_empty_wire_fit(
     hist: HistogramResult,
     fit_result: BinnedFitResult,
     component_names: list[str],
     *,
+    background_enabled: bool,
     title: str,
     output_path: str | Path,
 ) -> None:
@@ -52,16 +67,25 @@ def plot_empty_wire_fit(
 
     if fit_result.success and fit_result.values:
         widths = np.diff(hist.edges)
-        model = multi_gaussian_counts(hist.centers, widths, fit_result.values, component_names)
+        total_model = model_counts(
+            hist.centers,
+            widths,
+            fit_result.values,
+            component_names,
+            background_enabled=background_enabled,
+        )
 
-        ax.plot(hist.centers, model, label=f"total fit, chi2/ndf={fit_result.reduced_chi2:.2f}")
+        ax.plot(hist.centers, total_model, label=f"total fit, chi2/ndf={fit_result.reduced_chi2:.2f}")
+
+        if background_enabled:
+            bkg = _background_model(hist, fit_result)
+            ax.plot(hist.centers, bkg, linestyle="-.", label="poly2 background")
 
         for component in component_names:
             comp_counts = _component_model(hist, fit_result, component)
             mean = fit_result.values[f"mean_{component}"]
             sigma = fit_result.values[f"sigma_{component}"]
             ax.plot(hist.centers, comp_counts, linestyle="--", label=f"{component}: {mean:.3f} ± {sigma:.3f}")
-
             ax.axvline(mean, linestyle=":", alpha=0.6)
 
     else:
@@ -94,6 +118,7 @@ def build_fit_rows(
     hist: HistogramResult,
     fit_result: BinnedFitResult,
     component_names: list[str],
+    background_enabled: bool,
 ) -> list[dict[str, Any]]:
     rows = []
 
@@ -105,6 +130,8 @@ def build_fit_rows(
             "detector_region": detector_region,
             "sector": sector,
             "component": component,
+            "component_type": "gaussian",
+            "background_enabled": background_enabled,
             "entries": hist.entries,
             "fit_success": fit_result.success,
             "fit_valid": fit_result.valid,
@@ -135,6 +162,40 @@ def build_fit_rows(
 
         rows.append(row)
 
+    if background_enabled:
+        row = {
+            "run": run,
+            "vertex_source": vertex_source,
+            "charge": charge,
+            "detector_region": detector_region,
+            "sector": sector,
+            "component": "background_poly2",
+            "component_type": "poly2",
+            "background_enabled": True,
+            "entries": hist.entries,
+            "fit_success": fit_result.success,
+            "fit_valid": fit_result.valid,
+            "fmin_valid": fit_result.fmin_valid,
+            "edm": fit_result.edm,
+            "chi2": fit_result.chi2,
+            "ndof": fit_result.ndof,
+            "reduced_chi2": fit_result.reduced_chi2,
+            "message": fit_result.message,
+            "yield": np.nan,
+            "yield_error": np.nan,
+            "mean": np.nan,
+            "mean_error": np.nan,
+            "sigma": np.nan,
+            "sigma_error": np.nan,
+        }
+
+        if fit_result.success and fit_result.values:
+            for name in ("bkg_c0", "bkg_c1", "bkg_c2"):
+                row[name] = fit_result.values.get(name, np.nan)
+                row[f"{name}_error"] = fit_result.errors.get(name, np.nan)
+
+        rows.append(row)
+
     return rows
 
 
@@ -149,6 +210,7 @@ def build_reference_row(
     fit_result: BinnedFitResult,
     reference_component: str,
     n_sigma: float,
+    background_enabled: bool,
 ) -> dict[str, Any]:
     row = {
         "run": run,
@@ -157,6 +219,7 @@ def build_reference_row(
         "detector_region": detector_region,
         "sector": sector,
         "reference_component": reference_component,
+        "background_enabled": background_enabled,
         "entries": hist.entries,
         "fit_success": fit_result.success,
         "fit_valid": fit_result.valid,
@@ -203,6 +266,8 @@ def fit_empty_wire_category(
     quality_cfg = config.get("quality", {})
     component_cfg = config["components"]
     reference_cfg = config["reference_foil"]
+    background_cfg = config.get("background", {})
+    background_enabled = bool(background_cfg.get("enabled", False))
 
     hist = collect_vz_histogram(
         root_path,
@@ -219,13 +284,14 @@ def fit_empty_wire_category(
     min_entries = int(quality_cfg.get("min_entries", 0) or 0)
 
     if hist.entries < min_entries:
+        n_parameters = 3 * len(component_names) + (3 if background_enabled else 0)
         fit_result = BinnedFitResult(
             success=False,
             valid=False,
             fmin_valid=False,
             edm=None,
             chi2=np.nan,
-            ndof=int(len(hist.counts) - 3 * len(component_names)),
+            ndof=int(len(hist.counts) - n_parameters),
             reduced_chi2=np.nan,
             values={},
             errors={},
@@ -233,7 +299,12 @@ def fit_empty_wire_category(
             message=f"Skipped: entries {hist.entries} < min_entries {min_entries}",
         )
     else:
-        fit_result = fit_four_gaussians_chi2(hist.counts, hist.edges, component_cfg)
+        fit_result = fit_four_gaussians_chi2(
+            hist.counts,
+            hist.edges,
+            component_cfg,
+            background_config=background_cfg,
+        )
 
     title = (
         f"Run {run}: empty+wire fit\\n"
@@ -249,6 +320,7 @@ def fit_empty_wire_category(
         hist,
         fit_result,
         component_names,
+        background_enabled=background_enabled,
         title=title,
         output_path=output_plot,
     )
@@ -262,6 +334,7 @@ def fit_empty_wire_category(
         hist=hist,
         fit_result=fit_result,
         component_names=component_names,
+        background_enabled=background_enabled,
     )
 
     reference_row = build_reference_row(
@@ -274,6 +347,7 @@ def fit_empty_wire_category(
         fit_result=fit_result,
         reference_component=reference_cfg["component_name"],
         n_sigma=float(reference_cfg["n_sigma_window"]),
+        background_enabled=background_enabled,
     )
 
     return fit_rows, reference_row

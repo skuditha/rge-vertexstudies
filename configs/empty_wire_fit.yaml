@@ -28,7 +28,23 @@ empty_wire_fit:
     component_name: "reference_foil"
     n_sigma_window: 3.0
 
-  # First-pass model: four Gaussian peaks.
+  background:
+    enabled: true
+    shape: "poly2"
+
+    # The polynomial is evaluated in a scaled coordinate u in [-1, 1]:
+    #   background_counts = c0 + c1*u + c2*u^2
+    #
+    # c0 is bounded positive. c1 and c2 are free.
+    # Keep these broad; tune if a category becomes unstable.
+    initial_c0: null      # null means estimate from low-count bins
+    initial_c1: 0.0
+    initial_c2: 0.0
+    c0_bounds: [0.0, null]
+    c1_bounds: [null, null]
+    c2_bounds: [null, null]
+
+  # Signal model: four Gaussian peaks + optional poly2 background.
   # Edit these initials/bounds after looking at the 020507 histograms.
   components:
     ld2_entrance:
