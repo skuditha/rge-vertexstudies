@@ -41,3 +41,6 @@
 *.dwo
 
 cpp/build/
+outputs/
+__pycache__/
+python/rge_vertex.egg-info/
