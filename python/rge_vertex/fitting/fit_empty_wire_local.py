@@ -1,0 +1,291 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from rge_vertex.fitting.local_peak import (
+    local_fit_to_row,
+    local_gaussian_poly2_model,
+    fit_local_peak_poisson,
+)
+from rge_vertex.plotting.histograms import HistogramResult, collect_vz_histogram
+
+
+def _component_fit_arrays(hist: HistogramResult, fit_row: dict[str, Any]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    centers = hist.centers
+    edges = hist.edges
+    mask = (centers >= fit_row["fit_window_low"]) & (centers <= fit_row["fit_window_high"])
+    selected = np.where(mask)[0]
+    if selected.size == 0:
+        return np.array([]), np.array([]), np.array([])
+    local_edges = edges[int(selected[0]) : int(selected[-1]) + 2]
+    local_centers = 0.5 * (local_edges[:-1] + local_edges[1:])
+
+    model = local_gaussian_poly2_model(
+        local_edges,
+        yield_signal=fit_row["yield_signal"],
+        mean=fit_row["mean"],
+        sigma=fit_row["sigma"],
+        bkg_c0=fit_row["bkg_c0"] if fit_row["background_enabled"] else 0.0,
+        bkg_c1=fit_row["bkg_c1"] if fit_row["background_enabled"] else 0.0,
+        bkg_c2=fit_row["bkg_c2"] if fit_row["background_enabled"] else 0.0,
+    )
+
+    return local_centers, model, mask
+
+
+def plot_local_empty_wire_summary(
+    hist: HistogramResult,
+    fit_rows: list[dict[str, Any]],
+    *,
+    title: str,
+    output_path: str | Path,
+) -> None:
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.step(hist.centers, hist.counts, where="mid", label=f"data, N={hist.entries}")
+
+    for row in fit_rows:
+        comp = row["component"]
+
+        ax.axvspan(
+            row["fit_window_low"],
+            row["fit_window_high"],
+            alpha=0.08,
+        )
+
+        if row["fit_status"] in ("good", "bad_fit") and np.isfinite(row.get("mean", np.nan)):
+            local_centers, model, _ = _component_fit_arrays(hist, row)
+            if local_centers.size > 0:
+                ax.plot(local_centers, model, label=f"{comp}: {row['fit_status']}, mean={row['mean']:.3f}")
+            ax.axvline(row["mean"], linestyle=":", alpha=0.7)
+        else:
+            expected = row.get("expected_mean_cm", np.nan)
+            if np.isfinite(expected):
+                ax.axvline(expected, linestyle="--", alpha=0.4, label=f"{comp}: {row['fit_status']}")
+
+    ax.set_title(title)
+    ax.set_xlabel("vz [cm]")
+    ax.set_ylabel("counts")
+    ax.grid(True, alpha=0.25)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=160)
+    plt.close(fig)
+
+
+def build_reference_row(
+    *,
+    run: str,
+    vertex_source: str,
+    charge: str,
+    detector_region: str,
+    sector: int | str,
+    reference_component: str,
+    n_sigma: float,
+    fit_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    row = {
+        "run": run,
+        "vertex_source": vertex_source,
+        "charge": charge,
+        "detector_region": detector_region,
+        "sector": sector,
+        "reference_component": reference_component,
+        "n_sigma": n_sigma,
+        "fit_status": "missing",
+        "reference_mean": np.nan,
+        "reference_mean_error": np.nan,
+        "reference_sigma": np.nan,
+        "reference_sigma_error": np.nan,
+        "reference_low": np.nan,
+        "reference_high": np.nan,
+        "entries_category": np.nan,
+        "entries_window": np.nan,
+        "message": "",
+    }
+
+    matches = [r for r in fit_rows if r["component"] == reference_component]
+    if not matches:
+        row["message"] = f"reference component {reference_component} not found"
+        return row
+
+    ref = matches[0]
+    row["fit_status"] = ref["fit_status"]
+    row["entries_category"] = ref["entries_category"]
+    row["entries_window"] = ref["entries_window"]
+    row["message"] = ref.get("message", "")
+
+    if ref["fit_status"] == "good":
+        mean = ref["mean"]
+        sigma = abs(ref["sigma"])
+        row["reference_mean"] = mean
+        row["reference_mean_error"] = ref["mean_error"]
+        row["reference_sigma"] = sigma
+        row["reference_sigma_error"] = ref["sigma_error"]
+        row["reference_low"] = mean - n_sigma * sigma
+        row["reference_high"] = mean + n_sigma * sigma
+
+    return row
+
+
+def fit_empty_wire_local_category(
+    *,
+    run: str,
+    root_path: str | Path,
+    vertex_source: str,
+    charge: str,
+    detector_region: str,
+    sector: int | str,
+    config: dict[str, Any],
+    output_plot: str | Path,
+) -> tuple[list[dict[str, Any]], dict[str, Any], list[dict[str, Any]]]:
+    hist_cfg = config["histogram"]
+    quality_cfg = config.get("quality", {})
+    peak_cfg = config.get("peak_finding", {})
+    background_cfg = config.get("local_background", {})
+    component_cfg = config["components"]
+    reference_cfg = config["reference_foil"]
+
+    hist = collect_vz_histogram(
+        root_path,
+        vertex_source=vertex_source,
+        charge=charge,
+        detector_region=detector_region,
+        sector=sector,
+        chi2pid_abs_max=quality_cfg.get("chi2pid_abs_max"),
+        bins=int(hist_cfg["bins"]),
+        vz_range=(float(hist_cfg["vz_min_cm"]), float(hist_cfg["vz_max_cm"])),
+    )
+
+    background_enabled = bool(background_cfg.get("enabled", True))
+    fit_rows: list[dict[str, Any]] = []
+    unresolved_rows: list[dict[str, Any]] = []
+
+    min_entries_category = int(quality_cfg.get("min_entries_per_category", 0) or 0)
+    min_entries_window = int(quality_cfg.get("min_entries_per_local_window", 100) or 100)
+
+    if hist.entries < min_entries_category:
+        for component, comp_cfg in component_cfg.items():
+            row = {
+                "run": run,
+                "vertex_source": vertex_source,
+                "charge": charge,
+                "detector_region": detector_region,
+                "sector": sector,
+                "component": component,
+                "fit_status": "low_statistics_category",
+                "entries_category": hist.entries,
+                "entries_window": 0,
+                "message": f"entries_category {hist.entries} < min_entries_per_category {min_entries_category}",
+                "expected_mean_cm": comp_cfg.get("expected_mean_cm"),
+                "search_window_low": comp_cfg.get("search_window_cm", [None, None])[0],
+                "search_window_high": comp_cfg.get("search_window_cm", [None, None])[1],
+                "fit_window_low": comp_cfg.get("fit_window_cm", [None, None])[0],
+                "fit_window_high": comp_cfg.get("fit_window_cm", [None, None])[1],
+                "mean": np.nan,
+                "mean_error": np.nan,
+                "sigma": np.nan,
+                "sigma_error": np.nan,
+                "yield_signal": np.nan,
+                "yield_signal_error": np.nan,
+                "bkg_c0": np.nan,
+                "bkg_c0_error": np.nan,
+                "bkg_c1": np.nan,
+                "bkg_c1_error": np.nan,
+                "bkg_c2": np.nan,
+                "bkg_c2_error": np.nan,
+                "background_enabled": background_enabled,
+            }
+            fit_rows.append(row)
+            unresolved_rows.append(row)
+
+        reference_row = build_reference_row(
+            run=run,
+            vertex_source=vertex_source,
+            charge=charge,
+            detector_region=detector_region,
+            sector=sector,
+            reference_component=reference_cfg["component_name"],
+            n_sigma=float(reference_cfg["n_sigma_window"]),
+            fit_rows=fit_rows,
+        )
+        plot_local_empty_wire_summary(hist, fit_rows, title=f"Run {run}: low-stat category", output_path=output_plot)
+        return fit_rows, reference_row, unresolved_rows
+
+    for component, comp_cfg in component_cfg.items():
+        fit_result = fit_local_peak_poisson(
+            hist.counts,
+            hist.edges,
+            component=component,
+            component_config=comp_cfg,
+            entries_category=hist.entries,
+            peak_config=peak_cfg,
+            min_entries_window=min_entries_window,
+            background_enabled=background_enabled,
+        )
+
+        row = local_fit_to_row(
+            run=run,
+            vertex_source=vertex_source,
+            charge=charge,
+            detector_region=detector_region,
+            sector=sector,
+            fit_result=fit_result,
+            component_config=comp_cfg,
+            background_enabled=background_enabled,
+        )
+        fit_rows.append(row)
+
+        if row["fit_status"] != "good":
+            unresolved_rows.append(row)
+
+    title = (
+        f"Run {run}: local empty+wire fits\n"
+        f"{vertex_source}.vz, {charge}, {detector_region}, sector={sector}"
+    )
+    if detector_region == "central":
+        title = f"Run {run}: local empty+wire fits\n{vertex_source}.vz, {charge}, central detector"
+
+    plot_local_empty_wire_summary(hist, fit_rows, title=title, output_path=output_plot)
+
+    reference_row = build_reference_row(
+        run=run,
+        vertex_source=vertex_source,
+        charge=charge,
+        detector_region=detector_region,
+        sector=sector,
+        reference_component=reference_cfg["component_name"],
+        n_sigma=float(reference_cfg["n_sigma_window"]),
+        fit_rows=fit_rows,
+    )
+
+    return fit_rows, reference_row, unresolved_rows
+
+
+def save_empty_wire_local_outputs(
+    *,
+    fit_rows: list[dict[str, Any]],
+    reference_rows: list[dict[str, Any]],
+    unresolved_rows: list[dict[str, Any]],
+    fit_results_csv: str | Path,
+    reference_csv: str | Path,
+    unresolved_csv: str | Path,
+) -> None:
+    fit_results_csv = Path(fit_results_csv)
+    reference_csv = Path(reference_csv)
+    unresolved_csv = Path(unresolved_csv)
+
+    fit_results_csv.parent.mkdir(parents=True, exist_ok=True)
+    reference_csv.parent.mkdir(parents=True, exist_ok=True)
+    unresolved_csv.parent.mkdir(parents=True, exist_ok=True)
+
+    pd.DataFrame(fit_rows).to_csv(fit_results_csv, index=False)
+    pd.DataFrame(reference_rows).to_csv(reference_csv, index=False)
+    pd.DataFrame(unresolved_rows).to_csv(unresolved_csv, index=False)

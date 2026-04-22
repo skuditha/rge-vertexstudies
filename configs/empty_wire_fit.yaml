@@ -1,4 +1,4 @@
-empty_wire_fit:
+empty_wire_local_fit:
   run: "020507"
 
   histogram:
@@ -17,56 +17,65 @@ empty_wire_fit:
     # Central detector is sectorless.
     central_sectors: ["all"]
 
-  quality:
-    # Leave null for no chi2pid cut.
-    chi2pid_abs_max: null
+    # FTrack is not useful for the central detector in this workflow.
+    skip_central_ftrack: true
 
-    # Skip categories with too few entries.
-    min_entries: 1000
+  quality:
+    chi2pid_abs_max: null
+    min_entries_per_category: 1000
+    min_entries_per_local_window: 100
+
+  peak_finding:
+    enabled: true
+    smoothing_bins: 5
+    min_peak_counts: 20
+    min_relative_prominence: 0.04
 
   reference_foil:
     component_name: "reference_foil"
     n_sigma_window: 3.0
 
-  background:
+  local_background:
     enabled: true
     shape: "poly2"
 
-    # The polynomial is evaluated in a scaled coordinate u in [-1, 1]:
-    #   background_counts = c0 + c1*u + c2*u^2
-    #
-    # c0 is bounded positive. c1 and c2 are free.
-    # Keep these broad; tune if a category becomes unstable.
-    initial_c0: null      # null means estimate from low-count bins
-    initial_c1: 0.0
-    initial_c2: 0.0
-    c0_bounds: [0.0, null]
-    c1_bounds: [null, null]
-    c2_bounds: [null, null]
-
-  # Signal model: four Gaussian peaks + optional poly2 background.
-  # Edit these initials/bounds after looking at the 020507 histograms.
+  # Local-window fits. Each component is fit independently with:
+  #   bin-integrated Gaussian + local quadratic background
+  #
+  # These defaults reflect the approximate uploaded histogram peak locations:
+  #   LD2 entrance:   ~ -7.8 to -7.3 cm
+  #   LD2 exit:       ~ -5.7 to -5.3 cm
+  #   reference foil: ~ -3.6 to -3.3 cm
+  #   wire:           ~ -1.8 to -1.4 cm
   components:
     ld2_entrance:
-      initial_mean_cm: -7.0
-      mean_bounds_cm: [-8.5, -6.0]
+      expected_mean_cm: -7.6
+      search_window_cm: [-8.6, -6.8]
+      fit_window_cm: [-8.8, -6.6]
       initial_sigma_cm: 0.25
       sigma_bounds_cm: [0.03, 1.50]
+      required_for_reference: false
 
     ld2_exit:
-      initial_mean_cm: -5.0
-      mean_bounds_cm: [-6.2, -4.0]
+      expected_mean_cm: -5.5
+      search_window_cm: [-6.4, -4.8]
+      fit_window_cm: [-6.6, -4.6]
       initial_sigma_cm: 0.25
       sigma_bounds_cm: [0.03, 1.50]
+      required_for_reference: false
 
     reference_foil:
-      initial_mean_cm: -3.0
-      mean_bounds_cm: [-4.5, -1.5]
+      expected_mean_cm: -3.5
+      search_window_cm: [-4.3, -2.7]
+      fit_window_cm: [-4.5, -2.5]
       initial_sigma_cm: 0.20
       sigma_bounds_cm: [0.03, 1.50]
+      required_for_reference: true
 
     wire:
-      initial_mean_cm: 0.0
-      mean_bounds_cm: [-1.5, 2.0]
+      expected_mean_cm: -1.6
+      search_window_cm: [-2.4, -0.8]
+      fit_window_cm: [-2.6, -0.6]
       initial_sigma_cm: 0.20
       sigma_bounds_cm: [0.03, 1.50]
+      required_for_reference: false
