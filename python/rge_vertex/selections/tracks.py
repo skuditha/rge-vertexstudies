@@ -4,9 +4,45 @@ import numpy as np
 DETECTOR_REGION_IDS = {"other": 0, "forward": 1, "central": 2}
 CHARGE_VALUES = {"negative": -1, "positive": 1}
 
+VALID_VERTEX_SOURCES = {"particle", "ftrack", "hybrid"}
+
 
 def finite_mask(values) -> np.ndarray:
     return np.isfinite(np.asarray(values))
+
+
+def get_vz_values(arrays, vertex_source: str) -> np.ndarray:
+    """Return the vz array for a requested vertex source.
+
+    vertex_source options:
+      particle:
+        Always use REC::Particle.vz.
+
+      ftrack:
+        Use REC::FTrack.vz only. Entries without FTrack remain NaN
+        and are removed by vertex_source_mask.
+
+      hybrid:
+        Use REC::FTrack.vz when available and finite.
+        Fall back to REC::Particle.vz otherwise.
+
+    This implements the group-requested option:
+      FTrack when available, Particle when not.
+    """
+    if vertex_source == "particle":
+        return np.asarray(arrays["vz_particle"], dtype=float)
+
+    if vertex_source == "ftrack":
+        return np.asarray(arrays["vz_ftrack"], dtype=float)
+
+    if vertex_source == "hybrid":
+        vz_particle = np.asarray(arrays["vz_particle"], dtype=float)
+        vz_ftrack = np.asarray(arrays["vz_ftrack"], dtype=float)
+        has_ftrack = np.asarray(arrays["has_ftrack"]) == 1
+        use_ftrack = has_ftrack & np.isfinite(vz_ftrack)
+        return np.where(use_ftrack, vz_ftrack, vz_particle)
+
+    raise ValueError(f"Unknown vertex source: {vertex_source}. Valid options are {sorted(VALID_VERTEX_SOURCES)}")
 
 
 def charge_mask(arrays, charge: str | int | None) -> np.ndarray:
@@ -44,11 +80,19 @@ def pid_mask(arrays, pid: int | None) -> np.ndarray:
 
 
 def vertex_source_mask(arrays, vertex_source: str) -> np.ndarray:
-    if vertex_source == "particle":
-        return finite_mask(arrays["vz_particle"])
+    if vertex_source not in VALID_VERTEX_SOURCES:
+        raise ValueError(f"Unknown vertex source: {vertex_source}. Valid options are {sorted(VALID_VERTEX_SOURCES)}")
+
     if vertex_source == "ftrack":
         return (np.asarray(arrays["has_ftrack"]) == 1) & finite_mask(arrays["vz_ftrack"])
-    raise ValueError(f"Unknown vertex source: {vertex_source}")
+
+    if vertex_source == "particle":
+        return finite_mask(arrays["vz_particle"])
+
+    if vertex_source == "hybrid":
+        return finite_mask(get_vz_values(arrays, "hybrid"))
+
+    raise AssertionError("unreachable")
 
 
 def combined_track_mask(

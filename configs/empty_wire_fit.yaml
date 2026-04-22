@@ -7,7 +7,11 @@ empty_wire_local_fit:
     vz_max_cm: 4.0
 
   categories:
-    vertex_sources: ["particle", "ftrack"]
+    # particle: REC::Particle.vz only
+    # ftrack:  REC::FTrack.vz only, losing tracks without FTrack
+    # hybrid:  REC::FTrack.vz when available, otherwise REC::Particle.vz
+    vertex_sources: ["particle", "ftrack", "hybrid"]
+
     charges: ["negative", "positive"]
     detector_regions: ["forward", "central"]
 
@@ -17,7 +21,8 @@ empty_wire_local_fit:
     # Central detector is sectorless.
     central_sectors: ["all"]
 
-    # FTrack is not useful for the central detector in this workflow.
+    # FTrack-only is not useful for the central detector in this workflow.
+    # Hybrid is still kept for central; if no FTrack exists, it equals Particle.
     skip_central_ftrack: true
 
   quality:
@@ -39,14 +44,6 @@ empty_wire_local_fit:
     enabled: true
     shape: "poly2"
 
-  # Local-window fits. Each component is fit independently with:
-  #   bin-integrated Gaussian + local quadratic background
-  #
-  # These defaults reflect the approximate uploaded histogram peak locations:
-  #   LD2 entrance:   ~ -7.8 to -7.3 cm
-  #   LD2 exit:       ~ -5.7 to -5.3 cm
-  #   reference foil: ~ -3.6 to -3.3 cm
-  #   wire:           ~ -1.8 to -1.4 cm
   components:
     ld2_entrance:
       expected_mean_cm: -7.6

@@ -6,10 +6,13 @@ from pathlib import Path
 from rge_vertex.io.configs import iter_runs, repo_path
 from rge_vertex.plotting.histograms import (
     collect_vz_histogram,
-    plot_particle_vs_ftrack_overlay,
+    plot_vertex_source_overlay,
     save_histogram_csv,
     write_histogram_summary,
 )
+
+
+VERTEX_SOURCES = ["particle", "ftrack", "hybrid"]
 
 
 def sectors_for_detector_region(detector_region: str, include_forward_sector_plots: bool) -> list[int | str]:
@@ -40,7 +43,9 @@ def sector_label_for_path(detector_region: str, sector: int | str) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Make REC::Particle.vz vs REC::FTrack.vz comparison histograms.")
+    parser = argparse.ArgumentParser(
+        description="Make vertex-source comparison histograms: Particle, FTrack-only, and Hybrid."
+    )
     parser.add_argument("--runs-config", default="configs/runs.yaml")
     parser.add_argument("--run", default=None)
     parser.add_argument("--repo-root", default=".")
@@ -75,52 +80,48 @@ def main() -> None:
         for charge in charges:
             for detector_region in detector_regions:
                 for sector in sectors_for_detector_region(detector_region, include_forward_sector_plots):
-                    particle_hist = collect_vz_histogram(
-                        root_path,
-                        vertex_source="particle",
-                        charge=charge,
-                        detector_region=detector_region,
-                        sector=sector,
-                        chi2pid_abs_max=args.chi2pid_abs_max,
-                        bins=args.bins,
-                        vz_range=(args.vz_min, args.vz_max),
-                        step_size=args.step_size,
-                    )
+                    histograms = {}
 
-                    ftrack_hist = collect_vz_histogram(
-                        root_path,
-                        vertex_source="ftrack",
-                        charge=charge,
-                        detector_region=detector_region,
-                        sector=sector,
-                        chi2pid_abs_max=args.chi2pid_abs_max,
-                        bins=args.bins,
-                        vz_range=(args.vz_min, args.vz_max),
-                        step_size=args.step_size,
-                    )
+                    for vertex_source in VERTEX_SOURCES:
+                        histograms[vertex_source] = collect_vz_histogram(
+                            root_path,
+                            vertex_source=vertex_source,
+                            charge=charge,
+                            detector_region=detector_region,
+                            sector=sector,
+                            chi2pid_abs_max=args.chi2pid_abs_max,
+                            bins=args.bins,
+                            vz_range=(args.vz_min, args.vz_max),
+                            step_size=args.step_size,
+                        )
 
                     sector_path_label = sector_label_for_path(detector_region, sector)
                     sector_title_label = sector_label_for_title(detector_region, sector)
 
                     rel_dir = Path(str(run)) / "vertex_histograms" / detector_region / charge
-                    plot_path = output_base / rel_dir / f"{sector_path_label}_particle_vs_ftrack.png"
-                    csv_particle = output_base / rel_dir / f"{sector_path_label}_particle_hist.csv"
-                    csv_ftrack = output_base / rel_dir / f"{sector_path_label}_ftrack_hist.csv"
+                    plot_path = output_base / rel_dir / f"{sector_path_label}_vertex_sources.png"
 
                     title = (
                         f"Run {run}: {charge}, {detector_region}, {sector_title_label}\n"
-                        "REC::Particle.vz vs REC::FTrack.vz"
+                        "Particle vs FTrack-only vs Hybrid vertex source"
                     )
 
-                    plot_particle_vs_ftrack_overlay(
-                        particle_hist,
-                        ftrack_hist,
+                    plot_vertex_source_overlay(
+                        histograms,
                         title=title,
                         output_path=plot_path,
                         normalize=args.normalize,
                     )
-                    save_histogram_csv(particle_hist, csv_particle)
-                    save_histogram_csv(ftrack_hist, csv_ftrack)
+
+                    hist_csv_paths = {}
+                    for vertex_source, hist in histograms.items():
+                        csv_path = output_base / rel_dir / f"{sector_path_label}_{vertex_source}_hist.csv"
+                        save_histogram_csv(hist, csv_path)
+                        hist_csv_paths[vertex_source] = csv_path
+
+                    particle_n = histograms["particle"].entries
+                    ftrack_n = histograms["ftrack"].entries
+                    hybrid_n = histograms["hybrid"].entries
 
                     summary_rows.append(
                         {
@@ -132,22 +133,21 @@ def main() -> None:
                             "detector_region": detector_region,
                             "sector": sector,
                             "sector_is_applicable": detector_region == "forward",
-                            "particle_entries": particle_hist.entries,
-                            "ftrack_entries": ftrack_hist.entries,
-                            "ftrack_fraction_vs_particle": (
-                                ftrack_hist.entries / particle_hist.entries
-                                if particle_hist.entries > 0
-                                else None
-                            ),
+                            "particle_entries": particle_n,
+                            "ftrack_entries": ftrack_n,
+                            "hybrid_entries": hybrid_n,
+                            "ftrack_fraction_vs_particle": ftrack_n / particle_n if particle_n > 0 else None,
+                            "hybrid_fraction_vs_particle": hybrid_n / particle_n if particle_n > 0 else None,
                             "plot_path": str(plot_path),
-                            "particle_hist_csv": str(csv_particle),
-                            "ftrack_hist_csv": str(csv_ftrack),
+                            "particle_hist_csv": str(hist_csv_paths["particle"]),
+                            "ftrack_hist_csv": str(hist_csv_paths["ftrack"]),
+                            "hybrid_hist_csv": str(hist_csv_paths["hybrid"]),
                         }
                     )
 
                     print(
                         f"{run} {charge:8s} {detector_region:7s} {sector_title_label}: "
-                        f"Particle N={particle_hist.entries}, FTrack N={ftrack_hist.entries}"
+                        f"Particle N={particle_n}, FTrack N={ftrack_n}, Hybrid N={hybrid_n}"
                     )
 
     write_histogram_summary(summary_rows, repo_path(args.summary_csv, repo_root))
