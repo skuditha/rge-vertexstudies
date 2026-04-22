@@ -1,0 +1,23 @@
+fit_models:
+  empty_wire:
+    default_model: "four_gaussians"
+    components:
+      - name: "ld2_entrance"
+        shape: "gaussian"
+      - name: "ld2_exit"
+        shape: "gaussian"
+      - name: "reference_foil"
+        shape: "gaussian"
+      - name: "wire"
+        shape: "gaussian"
+
+  ld2_solid:
+    default_model: "gaussian_ld2_plus_gaussian_solid"
+    alternatives:
+      - "box_gaussian_ld2_plus_gaussian_solid"
+      - "box_gaussian_ld2_plus_crystalball_solid"
+
+  empty_solid:
+    default_model: "gaussian_solid"
+    alternatives:
+      - "crystalball_solid"

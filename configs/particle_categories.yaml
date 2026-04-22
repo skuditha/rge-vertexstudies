@@ -1,0 +1,35 @@
+track_preselection:
+  require_pid_nonzero: true
+  require_charged: true
+
+charge_categories:
+  negative:
+    charge: -1
+
+  positive:
+    charge: 1
+
+pid_categories:
+  electron:
+    pid: 11
+    charge: -1
+
+  pi_minus:
+    pid: -211
+    charge: -1
+
+  pi_plus:
+    pid: 211
+    charge: 1
+
+  proton:
+    pid: 2212
+    charge: 1
+
+  k_minus:
+    pid: -321
+    charge: -1
+
+  k_plus:
+    pid: 321
+    charge: 1

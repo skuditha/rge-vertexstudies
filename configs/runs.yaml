@@ -1,0 +1,96 @@
+runs:
+  "020507":
+    label: "empty_wire_reference"
+    run_class: "empty_wire"
+    polarity: "inbending"
+    target_config: "empty_wire"
+    solid_target: null
+    beam_energy_gev: 10.6
+    input_dir: "/path/to/020507/hipo/files"
+    output_root: "outputs/ntuples/020507.root"
+    enabled: true
+    notes: "Empty+wire run used to determine reference foil position."
+
+  "020100":
+    label: "ld2_c_inbending_dummy"
+    run_class: "ld2_solid"
+    polarity: "inbending"
+    target_config: "ld2_solid"
+    solid_target: "C"
+    beam_energy_gev: 10.6
+    input_dir: "/path/to/020100/hipo/files"
+    output_root: "outputs/ntuples/020100.root"
+    enabled: true
+    notes: "Dummy LD2+C production run."
+
+  "020101":
+    label: "ld2_al_inbending_dummy"
+    run_class: "ld2_solid"
+    polarity: "inbending"
+    target_config: "ld2_solid"
+    solid_target: "Al"
+    beam_energy_gev: 10.6
+    input_dir: "/path/to/020101/hipo/files"
+    output_root: "outputs/ntuples/020101.root"
+    enabled: true
+    notes: "Dummy LD2+Al production run."
+
+  "020102":
+    label: "ld2_cu_inbending_dummy"
+    run_class: "ld2_solid"
+    polarity: "inbending"
+    target_config: "ld2_solid"
+    solid_target: "Cu"
+    beam_energy_gev: 10.6
+    input_dir: "/path/to/020102/hipo/files"
+    output_root: "outputs/ntuples/020102.root"
+    enabled: true
+    notes: "Dummy LD2+Cu production run."
+
+  "020103":
+    label: "ld2_sn_inbending_dummy"
+    run_class: "ld2_solid"
+    polarity: "inbending"
+    target_config: "ld2_solid"
+    solid_target: "Sn"
+    beam_energy_gev: 10.6
+    input_dir: "/path/to/020103/hipo/files"
+    output_root: "outputs/ntuples/020103.root"
+    enabled: true
+    notes: "Dummy LD2+Sn production run."
+
+  "020104":
+    label: "ld2_pb_inbending_dummy"
+    run_class: "ld2_solid"
+    polarity: "inbending"
+    target_config: "ld2_solid"
+    solid_target: "Pb"
+    beam_energy_gev: 10.6
+    input_dir: "/path/to/020104/hipo/files"
+    output_root: "outputs/ntuples/020104.root"
+    enabled: true
+    notes: "Dummy LD2+Pb production run."
+
+  "020200":
+    label: "empty_c_inbending_dummy"
+    run_class: "empty_solid"
+    polarity: "inbending"
+    target_config: "empty_solid"
+    solid_target: "C"
+    beam_energy_gev: 10.6
+    input_dir: "/path/to/020200/hipo/files"
+    output_root: "outputs/ntuples/020200.root"
+    enabled: false
+    notes: "Dummy empty+C run, included later."
+
+  "020300":
+    label: "ld2_c_outbending_dummy"
+    run_class: "ld2_solid"
+    polarity: "outbending"
+    target_config: "ld2_solid"
+    solid_target: "C"
+    beam_energy_gev: 10.6
+    input_dir: "/path/to/020300/hipo/files"
+    output_root: "outputs/ntuples/020300.root"
+    enabled: false
+    notes: "Dummy outbending LD2+C run, included later."

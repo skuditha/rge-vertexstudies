@@ -1,0 +1,26 @@
+target_geometry:
+  ld2_solid:
+    ld2:
+      nominal_center_cm: -6.0
+      nominal_length_cm: 2.0
+      nominal_low_cm: -7.0
+      nominal_high_cm: -5.0
+
+    solid:
+      nominal_center_cm: -1.0
+
+    reference_foil:
+      expected_between_cm: [-5.0, -1.0]
+      position_source: "to be determined from run 020507"
+
+  empty_wire:
+    components:
+      ld2_entrance:
+        nominal_position_cm: -7.0
+      ld2_exit:
+        nominal_position_cm: -5.0
+      reference_foil:
+        nominal_position_cm: null
+        expected_between_cm: [-5.0, -1.0]
+      wire:
+        nominal_position_cm: null

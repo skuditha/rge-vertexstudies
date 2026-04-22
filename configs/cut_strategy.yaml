@@ -1,0 +1,32 @@
+cut_strategy:
+  recommended_granularity:
+    - sector
+    - charge
+    - detector_region
+
+  also_produce:
+    - global
+    - per_detector_region
+    - per_charge
+    - per_pid
+    - per_sector
+    - per_sector_charge_detector_pid
+
+  vertex_sources:
+    - particle
+    - ftrack
+
+  recommended_vertex_source: "to be determined"
+
+  reference_foil_avoidance:
+    source_run: "020507"
+    n_sigma: 3.0
+    safety_margin_cm: 0.1
+
+  ld2_cut:
+    strategy: "include_ld2_while_excluding_reference_foil"
+    initial_nominal_range_cm: [-7.0, -5.0]
+
+  solid_cut:
+    strategy: "solid_peak_window_excluding_reference_foil"
+    n_sigma: 3.0

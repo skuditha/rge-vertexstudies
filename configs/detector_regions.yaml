@@ -1,0 +1,16 @@
+detector_regions:
+  forward:
+    id: 1
+    abs_status_min: 2000
+    abs_status_max: 4000
+    rule: "2000 < abs(status) < 4000"
+
+  central:
+    id: 2
+    abs_status_min: 4000
+    abs_status_max: null
+    rule: "abs(status) > 4000"
+
+  unknown:
+    id: 0
+    rule: "anything else"
