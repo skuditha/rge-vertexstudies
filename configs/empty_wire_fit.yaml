@@ -1,0 +1,56 @@
+empty_wire_fit:
+  run: "020507"
+
+  histogram:
+    bins: 240
+    vz_min_cm: -12.0
+    vz_max_cm: 4.0
+
+  categories:
+    vertex_sources: ["particle", "ftrack"]
+    charges: ["negative", "positive"]
+    detector_regions: ["forward", "central"]
+
+    # Forward detector gets all + sector 1-6.
+    forward_sectors: ["all", 1, 2, 3, 4, 5, 6]
+
+    # Central detector is sectorless.
+    central_sectors: ["all"]
+
+  quality:
+    # Leave null for no chi2pid cut.
+    chi2pid_abs_max: null
+
+    # Skip categories with too few entries.
+    min_entries: 1000
+
+  reference_foil:
+    component_name: "reference_foil"
+    n_sigma_window: 3.0
+
+  # First-pass model: four Gaussian peaks.
+  # Edit these initials/bounds after looking at the 020507 histograms.
+  components:
+    ld2_entrance:
+      initial_mean_cm: -7.0
+      mean_bounds_cm: [-8.5, -6.0]
+      initial_sigma_cm: 0.25
+      sigma_bounds_cm: [0.03, 1.50]
+
+    ld2_exit:
+      initial_mean_cm: -5.0
+      mean_bounds_cm: [-6.2, -4.0]
+      initial_sigma_cm: 0.25
+      sigma_bounds_cm: [0.03, 1.50]
+
+    reference_foil:
+      initial_mean_cm: -3.0
+      mean_bounds_cm: [-4.5, -1.5]
+      initial_sigma_cm: 0.20
+      sigma_bounds_cm: [0.03, 1.50]
+
+    wire:
+      initial_mean_cm: 0.0
+      mean_bounds_cm: [-1.5, 2.0]
+      initial_sigma_cm: 0.20
+      sigma_bounds_cm: [0.03, 1.50]
