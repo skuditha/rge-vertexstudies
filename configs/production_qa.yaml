@@ -1,0 +1,38 @@
+production_qa:
+  run_filter:
+    enabled_only: true
+    run_class: "ld2_solid"
+    polarities: null
+    solid_targets: null
+
+  histogram:
+    bins: 240
+    vz_min_cm: -12.0
+    vz_max_cm: 4.0
+    step_size: "100 MB"
+    normalize_overlay: false
+
+  categories:
+    vertex_sources: ["particle", "ftrack", "hybrid"]
+    charges: ["negative", "positive"]
+    detector_regions: ["forward", "central"]
+
+    # Forward detector gets all + sector 1-6.
+    forward_sectors: ["all", 1, 2, 3, 4, 5, 6]
+
+    # Central detector is sectorless.
+    central_sectors: ["all"]
+
+  quality:
+    chi2pid_abs_max: null
+
+  qa_windows:
+    # These are rough QA windows only, not final cuts.
+    ld2_window_cm: [-7.5, -4.5]
+    solid_window_cm: [-1.6, -0.4]
+    reference_region_cm: [-4.3, -2.7]
+
+  outputs:
+    plots_dir: "outputs/plots"
+    tables_dir: "outputs/tables"
+    summary_csv: "outputs/tables/production_qa_histogram_summary.csv"
