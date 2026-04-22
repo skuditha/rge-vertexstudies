@@ -6,7 +6,7 @@ runs:
     target_config: "empty_wire"
     solid_target: null
     beam_energy_gev: 10.6
-    input_dir: "/path/to/020507/hipo/files"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/empty/dst/recon/020507/"
     output_root: "outputs/ntuples/020507.root"
     enabled: true
     notes: "Empty+wire run used to determine reference foil position."
