@@ -1,0 +1,56 @@
+from __future__ import annotations
+import numpy as np
+
+DETECTOR_REGION_IDS = {"other": 0, "forward": 1, "central": 2}
+CHARGE_VALUES = {"negative": -1, "positive": 1}
+
+
+def finite_mask(values) -> np.ndarray:
+    return np.isfinite(np.asarray(values))
+
+
+def charge_mask(arrays, charge: str | int | None) -> np.ndarray:
+    if charge is None or charge == "all":
+        return np.ones(len(arrays["charge"]), dtype=bool)
+    value = CHARGE_VALUES[charge] if isinstance(charge, str) else int(charge)
+    return np.asarray(arrays["charge"]) == value
+
+
+def detector_region_mask(arrays, detector_region: str | int | None) -> np.ndarray:
+    if detector_region is None or detector_region == "all":
+        return np.ones(len(arrays["detector_region"]), dtype=bool)
+    value = DETECTOR_REGION_IDS[detector_region] if isinstance(detector_region, str) else int(detector_region)
+    return np.asarray(arrays["detector_region"]) == value
+
+
+def sector_mask(arrays, sector: int | str | None) -> np.ndarray:
+    if sector is None or sector == "all":
+        return np.ones(len(arrays["sector"]), dtype=bool)
+    return np.asarray(arrays["sector"]) == int(sector)
+
+
+def pid_mask(arrays, pid: int | None) -> np.ndarray:
+    if pid is None:
+        return np.ones(len(arrays["pid"]), dtype=bool)
+    return np.asarray(arrays["pid"]) == int(pid)
+
+
+def vertex_source_mask(arrays, vertex_source: str) -> np.ndarray:
+    if vertex_source == "particle":
+        return finite_mask(arrays["vz_particle"])
+    if vertex_source == "ftrack":
+        return (np.asarray(arrays["has_ftrack"]) == 1) & finite_mask(arrays["vz_ftrack"])
+    raise ValueError(f"Unknown vertex source: {vertex_source}")
+
+
+def combined_track_mask(arrays, *, vertex_source: str, charge=None, detector_region=None, sector=None, pid=None, chi2pid_abs_max=None) -> np.ndarray:
+    mask = vertex_source_mask(arrays, vertex_source)
+    mask &= charge_mask(arrays, charge)
+    mask &= detector_region_mask(arrays, detector_region)
+    mask &= sector_mask(arrays, sector)
+    mask &= pid_mask(arrays, pid)
+    if chi2pid_abs_max is not None:
+        chi2 = np.asarray(arrays["chi2pid"])
+        mask &= np.isfinite(chi2)
+        mask &= np.abs(chi2) < float(chi2pid_abs_max)
+    return mask
