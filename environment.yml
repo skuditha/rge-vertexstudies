@@ -1,0 +1,12 @@
+name: rge-vertex
+channels: [conda-forge]
+dependencies:
+  - python>=3.9
+  - numpy
+  - pandas
+  - pyyaml
+  - uproot
+  - awkward
+  - matplotlib
+  - iminuit
+  - pip

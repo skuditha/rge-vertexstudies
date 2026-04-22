@@ -1,0 +1,12 @@
+[project]
+name = "rge-vertex"
+version = "0.1.0"
+requires-python = ">=3.9"
+dependencies = ["numpy", "pandas", "pyyaml", "uproot", "awkward", "matplotlib", "iminuit"]
+
+[tool.setuptools.packages.find]
+where = ["python"]
+
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
