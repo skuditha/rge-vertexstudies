@@ -23,6 +23,14 @@ def detector_region_mask(arrays, detector_region: str | int | None) -> np.ndarra
     return np.asarray(arrays["detector_region"]) == value
 
 
+def detector_region_is_central(detector_region: str | int | None) -> bool:
+    if detector_region is None or detector_region == "all":
+        return False
+    if isinstance(detector_region, str):
+        return detector_region == "central"
+    return int(detector_region) == DETECTOR_REGION_IDS["central"]
+
+
 def sector_mask(arrays, sector: int | str | None) -> np.ndarray:
     if sector is None or sector == "all":
         return np.ones(len(arrays["sector"]), dtype=bool)
@@ -43,14 +51,31 @@ def vertex_source_mask(arrays, vertex_source: str) -> np.ndarray:
     raise ValueError(f"Unknown vertex source: {vertex_source}")
 
 
-def combined_track_mask(arrays, *, vertex_source: str, charge=None, detector_region=None, sector=None, pid=None, chi2pid_abs_max=None) -> np.ndarray:
+def combined_track_mask(
+    arrays,
+    *,
+    vertex_source: str,
+    charge=None,
+    detector_region=None,
+    sector=None,
+    pid=None,
+    chi2pid_abs_max=None,
+) -> np.ndarray:
     mask = vertex_source_mask(arrays, vertex_source)
     mask &= charge_mask(arrays, charge)
     mask &= detector_region_mask(arrays, detector_region)
-    mask &= sector_mask(arrays, sector)
+
+    # The central detector is treated as one sectorless entity.
+    # If a caller accidentally passes sector=1..6 with detector_region="central",
+    # ignore that sector request instead of splitting central tracks.
+    effective_sector = "all" if detector_region_is_central(detector_region) else sector
+    mask &= sector_mask(arrays, effective_sector)
+
     mask &= pid_mask(arrays, pid)
+
     if chi2pid_abs_max is not None:
         chi2 = np.asarray(arrays["chi2pid"])
         mask &= np.isfinite(chi2)
         mask &= np.abs(chi2) < float(chi2pid_abs_max)
+
     return mask

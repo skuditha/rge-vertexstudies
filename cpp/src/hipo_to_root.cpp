@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
         fs::create_directories(fs::path(o.output).parent_path());
 
         TFile fout(o.output.c_str(), "RECREATE");
-        TTree tracks("tracks", "charged pid!=0 REC::Particle tracks");
+        TTree tracks("tracks", "charged pid!=0 REC::Particle tracks; sector=0 for non-forward tracks");
         TTree run_info("run_info", "extractor counters");
 
         int run = o.run, file_index = -1, particle_index = -1;
@@ -206,6 +206,14 @@ int main(int argc, char** argv) {
                         if (sector == 0) sector = ftrack_sector;
                         ++n_tracks_with_ftrack;
                     }
+
+                    // Only the forward detector has a meaningful six-sector split
+                    // for this analysis. Treat central and other detector-region
+                    // tracks as a single sectorless category.
+                    if (detector_region != 1) {
+                        sector = 0;
+                    }
+
                     tracks.Fill(); ++n_tracks_written;
                 }
                 if (o.max_events > 0 && n_events_seen >= o.max_events) break;

@@ -4,13 +4,21 @@ detector_regions:
     abs_status_min: 2000
     abs_status_max: 4000
     rule: "2000 < abs(status) < 4000"
+    sector_split: true
+    sector_values: [1, 2, 3, 4, 5, 6]
 
   central:
     id: 2
     abs_status_min: 4000
     abs_status_max: null
     rule: "abs(status) > 4000"
+    sector_split: false
+    sector_values: ["all"]
+    stored_sector_value: 0
 
-  unknown:
+  other:
     id: 0
     rule: "anything else"
+    sector_split: false
+    sector_values: ["all"]
+    stored_sector_value: 0
