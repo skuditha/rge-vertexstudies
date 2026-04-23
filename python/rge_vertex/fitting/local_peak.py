@@ -185,15 +185,19 @@ def find_peak_in_window(
     mask = (centers >= lo) & (centers <= hi)
     if np.sum(mask) < 3:
         return PeakCandidate(False, float("nan"), float("nan"), float("nan"), "search window has too few bins")
+
     local_centers = centers[mask]
     local_counts = counts[mask]
     smooth = moving_average(local_counts, smoothing_bins)
+
     candidate_indices = []
     for i in range(1, len(smooth) - 1):
         if smooth[i] > smooth[i - 1] and smooth[i] >= smooth[i + 1]:
             candidate_indices.append(i)
+
     if not candidate_indices:
         return PeakCandidate(False, float("nan"), float("nan"), float("nan"), "no local maximum found")
+
     baseline = float(np.percentile(smooth, 20))
     max_smooth = max(float(np.max(smooth)), 1.0)
     candidates = []
@@ -206,8 +210,10 @@ def find_peak_in_window(
             continue
         distance = abs(float(local_centers[i]) - float(expected_mean))
         candidates.append((distance, -prominence, i, height, prominence))
+
     if not candidates:
         return PeakCandidate(False, float("nan"), float("nan"), float("nan"), "local maxima failed height/prominence thresholds")
+
     _, _, idx, height, prominence = sorted(candidates)[0]
     return PeakCandidate(True, float(local_centers[idx]), float(height), float(prominence), "")
 
@@ -263,10 +269,20 @@ def fit_local_peak_poisson(
     n_base_params = 6 + (1 if signal_model == "box_gaussian" else 0)
 
     if entries_window < min_entries_window:
-        return LocalPeakFitResult(component, "low_statistics", False, False, False, int(entries_category), entries_window, peak.found, peak.center, peak.height, peak.prominence, float("nan"), float("nan"), int(max(len(local_counts)-n_base_params,0)), float("nan"), {}, {}, f"entries_window {entries_window} < min_entries_window {min_entries_window}")
+        return LocalPeakFitResult(
+            component, "low_statistics", False, False, False,
+            int(entries_category), entries_window, peak.found, peak.center, peak.height, peak.prominence,
+            float("nan"), float("nan"), int(max(len(local_counts)-n_base_params, 0)), float("nan"),
+            {}, {}, f"entries_window {entries_window} < min_entries_window {min_entries_window}"
+        )
 
     if not peak.found:
-        return LocalPeakFitResult(component, "unresolved_peak", False, False, False, int(entries_category), entries_window, False, float("nan"), float("nan"), float("nan"), float("nan"), float("nan"), int(max(len(local_counts)-n_base_params,0)), float("nan"), {}, {}, peak.message)
+        return LocalPeakFitResult(
+            component, "unresolved_peak", False, False, False,
+            int(entries_category), entries_window, False, float("nan"), float("nan"), float("nan"),
+            float("nan"), float("nan"), int(max(len(local_counts)-n_base_params, 0)), float("nan"),
+            {}, {}, peak.message
+        )
 
     initial_mean = peak.center
     initial_sigma = float(component_config.get("initial_sigma_cm", 0.2))
@@ -280,52 +296,111 @@ def fit_local_peak_poisson(
     if not background_enabled:
         bkg_c0_initial = 0.0
 
-    def nll_func(yield_signal, mean, sigma, bkg_c0, bkg_c1, bkg_c2, box_width=None):
-        mu = local_signal_background_model(
-            local_edges,
-            signal_model=signal_model,
-            yield_signal=yield_signal,
-            mean=mean,
-            sigma=sigma,
-            bkg_c0=bkg_c0 if background_enabled else 0.0,
-            bkg_c1=bkg_c1 if background_enabled else 0.0,
-            bkg_c2=bkg_c2 if background_enabled else 0.0,
-            box_width=box_width,
-        )
-        return poisson_nll(local_counts, mu)
-
     try:
         if signal_model == "box_gaussian":
-            m = Minuit(nll_func, yield_signal=signal_yield_initial, mean=initial_mean, sigma=initial_sigma, bkg_c0=bkg_c0_initial, bkg_c1=0.0, bkg_c2=0.0, box_width=initial_box_width)
+            def nll_func(yield_signal, mean, sigma, bkg_c0, bkg_c1, bkg_c2, box_width):
+                mu = local_signal_background_model(
+                    local_edges,
+                    signal_model=signal_model,
+                    yield_signal=yield_signal,
+                    mean=mean,
+                    sigma=sigma,
+                    bkg_c0=bkg_c0 if background_enabled else 0.0,
+                    bkg_c1=bkg_c1 if background_enabled else 0.0,
+                    bkg_c2=bkg_c2 if background_enabled else 0.0,
+                    box_width=box_width,
+                )
+                return poisson_nll(local_counts, mu)
+
+            m = Minuit(
+                nll_func,
+                yield_signal=signal_yield_initial,
+                mean=initial_mean,
+                sigma=initial_sigma,
+                bkg_c0=bkg_c0_initial,
+                bkg_c1=0.0,
+                bkg_c2=0.0,
+                box_width=initial_box_width,
+            )
+            m.limits["box_width"] = (box_width_lo, box_width_hi)
+
+        elif signal_model == "gaussian":
+            def nll_func(yield_signal, mean, sigma, bkg_c0, bkg_c1, bkg_c2):
+                mu = local_signal_background_model(
+                    local_edges,
+                    signal_model=signal_model,
+                    yield_signal=yield_signal,
+                    mean=mean,
+                    sigma=sigma,
+                    bkg_c0=bkg_c0 if background_enabled else 0.0,
+                    bkg_c1=bkg_c1 if background_enabled else 0.0,
+                    bkg_c2=bkg_c2 if background_enabled else 0.0,
+                )
+                return poisson_nll(local_counts, mu)
+
+            m = Minuit(
+                nll_func,
+                yield_signal=signal_yield_initial,
+                mean=initial_mean,
+                sigma=initial_sigma,
+                bkg_c0=bkg_c0_initial,
+                bkg_c1=0.0,
+                bkg_c2=0.0,
+            )
         else:
-            m = Minuit(nll_func, yield_signal=signal_yield_initial, mean=initial_mean, sigma=initial_sigma, bkg_c0=bkg_c0_initial, bkg_c1=0.0, bkg_c2=0.0)
+            raise ValueError(f"Unsupported signal_model: {signal_model}")
+
         m.errordef = Minuit.LIKELIHOOD
         m.limits["yield_signal"] = (0.0, None)
         m.limits["mean"] = search_window
         m.limits["sigma"] = (sigma_lo, sigma_hi)
         m.limits["bkg_c0"] = (0.0, None)
+
         max_count = max(float(np.max(local_counts)), 1.0)
         m.limits["bkg_c1"] = (-5.0 * max_count, 5.0 * max_count)
         m.limits["bkg_c2"] = (-5.0 * max_count, 5.0 * max_count)
-        if signal_model == "box_gaussian":
-            m.limits["box_width"] = (box_width_lo, box_width_hi)
+
         if not background_enabled:
             m.fixed["bkg_c0"] = True
             m.fixed["bkg_c1"] = True
             m.fixed["bkg_c2"] = True
+
         m.migrad()
         m.hesse()
+
         values = {name: float(m.values[name]) for name in m.parameters}
         errors = {name: float(m.errors[name]) for name in m.parameters}
-        mu = local_signal_background_model(local_edges, signal_model=signal_model, yield_signal=values["yield_signal"], mean=values["mean"], sigma=values["sigma"], bkg_c0=values["bkg_c0"] if background_enabled else 0.0, bkg_c1=values["bkg_c1"] if background_enabled else 0.0, bkg_c2=values["bkg_c2"] if background_enabled else 0.0, box_width=values.get("box_width"))
+
+        mu = local_signal_background_model(
+            local_edges,
+            signal_model=signal_model,
+            yield_signal=values["yield_signal"],
+            mean=values["mean"],
+            sigma=values["sigma"],
+            bkg_c0=values["bkg_c0"] if background_enabled else 0.0,
+            bkg_c1=values["bkg_c1"] if background_enabled else 0.0,
+            bkg_c2=values["bkg_c2"] if background_enabled else 0.0,
+            box_width=values.get("box_width"),
+        )
         dev = poisson_deviance(local_counts, mu)
         n_free = sum(1 for name in m.parameters if not m.fixed[name])
         ndof = int(len(local_counts) - n_free)
         dev_ndof = dev / ndof if ndof > 0 else float("nan")
         status = "good" if bool(m.valid) and np.isfinite(dev_ndof) else "bad_fit"
-        return LocalPeakFitResult(component, status, True, bool(m.valid), bool(m.fmin.is_valid), int(entries_category), entries_window, True, peak.center, peak.height, peak.prominence, float(m.fval), float(dev), ndof, float(dev_ndof), values, errors, "")
+
+        return LocalPeakFitResult(
+            component, status, True, bool(m.valid), bool(m.fmin.is_valid),
+            int(entries_category), entries_window, True, peak.center, peak.height, peak.prominence,
+            float(m.fval), float(dev), ndof, float(dev_ndof), values, errors, ""
+        )
+
     except Exception as exc:
-        return LocalPeakFitResult(component, "bad_fit", False, False, False, int(entries_category), entries_window, True, peak.center, peak.height, peak.prominence, float("nan"), float("nan"), int(max(len(local_counts)-n_base_params,0)), float("nan"), {}, {}, str(exc))
+        return LocalPeakFitResult(
+            component, "bad_fit", False, False, False,
+            int(entries_category), entries_window, True, peak.center, peak.height, peak.prominence,
+            float("nan"), float("nan"), int(max(len(local_counts)-n_base_params, 0)), float("nan"),
+            {}, {}, str(exc)
+        )
 
 
 def local_fit_to_row(
