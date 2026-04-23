@@ -1,0 +1,73 @@
+ld2_solid_local_fit:
+  run_filter:
+    enabled_only: true
+    run_class: "ld2_solid"
+    polarities: null
+    solid_targets: null
+
+  histogram:
+    bins: 240
+    vz_min_cm: -12.0
+    vz_max_cm: 4.0
+
+  categories:
+    # particle: REC::Particle.vz only
+    # ftrack:  REC::FTrack.vz only, losing tracks without FTrack
+    # hybrid:  REC::FTrack.vz when available, otherwise REC::Particle.vz
+    vertex_sources: ["particle", "ftrack", "hybrid"]
+
+    charges: ["negative", "positive"]
+    detector_regions: ["forward", "central"]
+
+    # Forward detector gets all + sector 1-6.
+    forward_sectors: ["all", 1, 2, 3, 4, 5, 6]
+
+    # Central detector is sectorless.
+    central_sectors: ["all"]
+
+    # FTrack-only is usually not useful for the central detector.
+    # Hybrid is still kept for central; if no FTrack exists, it equals Particle.
+    skip_central_ftrack: true
+
+  quality:
+    chi2pid_abs_max: null
+    min_entries_per_category: 1000
+    min_entries_per_local_window: 100
+
+  peak_finding:
+    enabled: true
+    smoothing_bins: 5
+    min_peak_counts: 20
+    min_relative_prominence: 0.04
+
+  local_background:
+    enabled: true
+    shape: "poly2"
+
+  # First-pass production fit:
+  #   LD2  = local Gaussian + quadratic background
+  #   solid = local Gaussian + quadratic background
+  #
+  # The LD2 target is extended in z; this will later be upgradeable to box⊗Gaussian.
+  components:
+    ld2:
+      signal_model: "gaussian"
+      expected_mean_cm: -6.0
+      search_window_cm: [-7.8, -4.7]
+      fit_window_cm: [-8.2, -4.4]
+      initial_sigma_cm: 0.40
+      sigma_bounds_cm: [0.05, 2.00]
+
+    solid:
+      signal_model: "gaussian"
+      expected_mean_cm: -1.0
+      search_window_cm: [-1.8, -0.2]
+      fit_window_cm: [-2.1, 0.2]
+      initial_sigma_cm: 0.20
+      sigma_bounds_cm: [0.03, 1.50]
+
+  outputs:
+    plots_dir: "outputs/plots"
+    fit_results_csv: "outputs/fits/ld2_solid_local_fit_results.csv"
+    unresolved_csv: "outputs/tables/unresolved_ld2_solid_categories.csv"
+    category_summary_csv: "outputs/tables/ld2_solid_category_summary.csv"
