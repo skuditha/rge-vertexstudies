@@ -10,7 +10,7 @@ import pandas as pd
 from rge_vertex.fitting.local_peak import (
     fit_local_peak_poisson,
     local_fit_to_row,
-    local_gaussian_poly2_model,
+    local_signal_background_model,
 )
 from rge_vertex.plotting.histograms import HistogramResult, collect_vz_histogram
 
@@ -25,14 +25,16 @@ def _component_fit_arrays(hist: HistogramResult, fit_row: dict[str, Any]) -> tup
     local_edges = edges[int(selected[0]) : int(selected[-1]) + 2]
     local_centers = 0.5 * (local_edges[:-1] + local_edges[1:])
 
-    model = local_gaussian_poly2_model(
+    model = local_signal_background_model(
         local_edges,
+        signal_model=fit_row.get("signal_model", "gaussian"),
         yield_signal=fit_row["yield_signal"],
         mean=fit_row["mean"],
         sigma=fit_row["sigma"],
         bkg_c0=fit_row["bkg_c0"] if fit_row["background_enabled"] else 0.0,
         bkg_c1=fit_row["bkg_c1"] if fit_row["background_enabled"] else 0.0,
         bkg_c2=fit_row["bkg_c2"] if fit_row["background_enabled"] else 0.0,
+        box_width=fit_row.get("box_width"),
     )
 
     return local_centers, model, mask
@@ -53,17 +55,15 @@ def plot_local_ld2_solid_summary(
 
     for row in fit_rows:
         comp = row["component"]
-
-        ax.axvspan(
-            row["fit_window_low"],
-            row["fit_window_high"],
-            alpha=0.08,
-        )
-
+        ax.axvspan(row["fit_window_low"], row["fit_window_high"], alpha=0.08)
         if row["fit_status"] in ("good", "bad_fit") and np.isfinite(row.get("mean", np.nan)):
             local_centers, model, _ = _component_fit_arrays(hist, row)
             if local_centers.size > 0:
-                ax.plot(local_centers, model, label=f"{comp}: {row['fit_status']}, mean={row['mean']:.3f}")
+                if row.get("signal_model") == "box_gaussian" and np.isfinite(row.get("box_width", np.nan)):
+                    lbl = f"{comp}: {row['fit_status']}, mean={row['mean']:.3f}, w={row['box_width']:.3f}"
+                else:
+                    lbl = f"{comp}: {row['fit_status']}, mean={row['mean']:.3f}"
+                ax.plot(local_centers, model, label=lbl)
             ax.axvline(row["mean"], linestyle=":", alpha=0.7)
         else:
             expected = row.get("expected_mean_cm", np.nan)
@@ -113,14 +113,20 @@ def build_category_summary(
         "entries_category": hist.entries,
         "ld2_fit_status": None,
         "solid_fit_status": None,
+        "ld2_signal_model": None,
+        "solid_signal_model": None,
         "ld2_mean": np.nan,
         "ld2_mean_error": np.nan,
         "ld2_sigma": np.nan,
         "ld2_sigma_error": np.nan,
+        "ld2_box_width": np.nan,
+        "ld2_box_width_error": np.nan,
         "solid_mean": np.nan,
         "solid_mean_error": np.nan,
         "solid_sigma": np.nan,
         "solid_sigma_error": np.nan,
+        "solid_box_width": np.nan,
+        "solid_box_width_error": np.nan,
         "ld2_deviance_ndof": np.nan,
         "solid_deviance_ndof": np.nan,
         "mean_gap_solid_minus_ld2": np.nan,
@@ -129,18 +135,24 @@ def build_category_summary(
 
     if ld2 is not None:
         summary["ld2_fit_status"] = ld2["fit_status"]
+        summary["ld2_signal_model"] = ld2.get("signal_model")
         summary["ld2_mean"] = ld2.get("mean", np.nan)
         summary["ld2_mean_error"] = ld2.get("mean_error", np.nan)
         summary["ld2_sigma"] = ld2.get("sigma", np.nan)
         summary["ld2_sigma_error"] = ld2.get("sigma_error", np.nan)
+        summary["ld2_box_width"] = ld2.get("box_width", np.nan)
+        summary["ld2_box_width_error"] = ld2.get("box_width_error", np.nan)
         summary["ld2_deviance_ndof"] = ld2.get("deviance_ndof", np.nan)
 
     if solid is not None:
         summary["solid_fit_status"] = solid["fit_status"]
+        summary["solid_signal_model"] = solid.get("signal_model")
         summary["solid_mean"] = solid.get("mean", np.nan)
         summary["solid_mean_error"] = solid.get("mean_error", np.nan)
         summary["solid_sigma"] = solid.get("sigma", np.nan)
         summary["solid_sigma_error"] = solid.get("sigma_error", np.nan)
+        summary["solid_box_width"] = solid.get("box_width", np.nan)
+        summary["solid_box_width_error"] = solid.get("box_width_error", np.nan)
         summary["solid_deviance_ndof"] = solid.get("deviance_ndof", np.nan)
 
     if (
@@ -207,6 +219,7 @@ def fit_ld2_solid_local_category(
                 "detector_region": detector_region,
                 "sector": sector,
                 "component": component,
+                "signal_model": comp_cfg.get("signal_model", "gaussian"),
                 "fit_status": "low_statistics_category",
                 "entries_category": hist.entries,
                 "entries_window": 0,
@@ -222,6 +235,8 @@ def fit_ld2_solid_local_category(
                 "sigma_error": np.nan,
                 "yield_signal": np.nan,
                 "yield_signal_error": np.nan,
+                "box_width": np.nan,
+                "box_width_error": np.nan,
                 "bkg_c0": np.nan,
                 "bkg_c0_error": np.nan,
                 "bkg_c1": np.nan,
@@ -233,16 +248,7 @@ def fit_ld2_solid_local_category(
             fit_rows.append(row)
             unresolved_rows.append(row)
 
-        category_summary = build_category_summary(
-            run=run,
-            meta=meta,
-            vertex_source=vertex_source,
-            charge=charge,
-            detector_region=detector_region,
-            sector=sector,
-            hist=hist,
-            fit_rows=fit_rows,
-        )
+        category_summary = build_category_summary(run=run, meta=meta, vertex_source=vertex_source, charge=charge, detector_region=detector_region, sector=sector, hist=hist, fit_rows=fit_rows)
         plot_local_ld2_solid_summary(hist, fit_rows, title=f"Run {run}: low-stat category", output_path=output_plot)
         return fit_rows, unresolved_rows, category_summary
 
@@ -268,16 +274,12 @@ def fit_ld2_solid_local_category(
             component_config=comp_cfg,
             background_enabled=background_enabled,
         )
-
         row["label"] = meta.get("label", "")
         row["run_class"] = meta.get("run_class", "")
         row["polarity"] = meta.get("polarity", "")
         row["solid_target"] = meta.get("solid_target", "")
         row["target_config"] = meta.get("target_config", "")
-        row["signal_model"] = comp_cfg.get("signal_model", "gaussian")
-
         fit_rows.append(row)
-
         if row["fit_status"] != "good":
             unresolved_rows.append(row)
 
@@ -294,18 +296,7 @@ def fit_ld2_solid_local_category(
         )
 
     plot_local_ld2_solid_summary(hist, fit_rows, title=title, output_path=output_plot)
-
-    category_summary = build_category_summary(
-        run=run,
-        meta=meta,
-        vertex_source=vertex_source,
-        charge=charge,
-        detector_region=detector_region,
-        sector=sector,
-        hist=hist,
-        fit_rows=fit_rows,
-    )
-
+    category_summary = build_category_summary(run=run, meta=meta, vertex_source=vertex_source, charge=charge, detector_region=detector_region, sector=sector, hist=hist, fit_rows=fit_rows)
     return fit_rows, unresolved_rows, category_summary
 
 
@@ -321,11 +312,9 @@ def save_ld2_solid_local_outputs(
     fit_results_csv = Path(fit_results_csv)
     unresolved_csv = Path(unresolved_csv)
     category_summary_csv = Path(category_summary_csv)
-
     fit_results_csv.parent.mkdir(parents=True, exist_ok=True)
     unresolved_csv.parent.mkdir(parents=True, exist_ok=True)
     category_summary_csv.parent.mkdir(parents=True, exist_ok=True)
-
     pd.DataFrame(fit_rows).to_csv(fit_results_csv, index=False)
     pd.DataFrame(unresolved_rows).to_csv(unresolved_csv, index=False)
     pd.DataFrame(category_summary_rows).to_csv(category_summary_csv, index=False)
