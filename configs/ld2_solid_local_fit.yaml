@@ -11,14 +11,9 @@ ld2_solid_local_fit:
     vz_max_cm: 4.0
 
   categories:
-    # particle: REC::Particle.vz only
-    # ftrack:  REC::FTrack.vz only, losing tracks without FTrack
-    # hybrid:  REC::FTrack.vz when available, otherwise REC::Particle.vz
     vertex_sources: ["particle", "ftrack", "hybrid"]
-
     charges: ["negative", "positive"]
     detector_regions: ["forward", "central"]
-
     forward_sectors: ["all", 1, 2, 3, 4, 5, 6]
     central_sectors: ["all"]
     skip_central_ftrack: true
@@ -59,6 +54,8 @@ ld2_solid_local_fit:
 
   outputs:
     plots_dir: "outputs/plots"
-    fit_results_csv: "outputs/fits/ld2_solid_local_fit_results.csv"
-    unresolved_csv: "outputs/tables/unresolved_ld2_solid_categories.csv"
-    category_summary_csv: "outputs/tables/ld2_solid_category_summary.csv"
+    per_run_fit_dir: "outputs/fits/ld2_solid_per_run"
+    per_run_table_dir: "outputs/tables/ld2_solid_per_run"
+    merged_fit_results_csv: "outputs/fits/ld2_solid_local_fit_results.csv"
+    merged_unresolved_csv: "outputs/tables/unresolved_ld2_solid_categories.csv"
+    merged_category_summary_csv: "outputs/tables/ld2_solid_category_summary.csv"
