@@ -1,0 +1,39 @@
+cut_extraction:
+  inputs:
+    reference_foil_csv: "outputs/tables/reference_foil_positions.csv"
+    category_summary_csv: "outputs/tables/ld2_solid_category_summary.csv"
+    charge_vs_pid_comparison_csv: "outputs/tables/charge_vs_pid_comparison_summary.csv"
+
+  policy:
+    recommended_vertex_source: "hybrid"
+    final_charges: ["negative", "positive"]
+    forward_sectors: [1, 2, 3, 4, 5, 6]
+    central_sector: "all"
+    accepted_pid_categories:
+      - "charge_only"
+      - "charge_negative"
+      - "charge_positive"
+    reference_vertex_source_fallback_order:
+      - "hybrid"
+      - "particle"
+      - "ftrack"
+
+  cut_recipe:
+    ld2_n_sigma: 3.0
+    solid_n_sigma: 3.0
+    clip_to_reference: true
+    safety_margin_cm: 0.0
+
+  aggregation:
+    statistic: "median"
+    min_run_candidates: 1
+
+  fallback:
+    enabled: true
+    allow_sector_all_fallback: true
+    allow_target_broadening: true
+    allow_polarity_broadening: false
+
+  outputs:
+    all_candidate_cuts_csv: "outputs/tables/ld2_solid_vertex_cuts_all.csv"
+    recommended_cuts_csv: "outputs/tables/ld2_solid_vertex_cuts_recommended.csv"
