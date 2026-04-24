@@ -1,0 +1,27 @@
+run_dependence:
+  inputs:
+    category_summary_csv: "outputs/tables/ld2_solid_category_summary.csv"
+    production_qa_summary_csv: "outputs/tables/production_qa_histogram_summary.csv"
+
+  filters:
+    polarities: null
+    solid_targets: null
+    vertex_sources: ["particle", "ftrack", "hybrid"]
+    charges: ["negative", "positive"]
+    detector_regions: ["forward", "central"]
+    sectors: null
+
+  plotting:
+    overlay_by: "vertex_source"
+    metrics:
+      - "ld2_mean"
+      - "solid_mean"
+      - "ld2_sigma"
+      - "solid_sigma"
+      - "mean_gap_solid_minus_ld2"
+    require_good_fits: true
+    make_entry_fraction_plots: true
+
+  outputs:
+    plots_dir: "outputs/plots/run_dependence"
+    summary_csv: "outputs/tables/run_dependence_plot_groups.csv"
