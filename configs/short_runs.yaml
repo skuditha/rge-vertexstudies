@@ -1,4 +1,16 @@
 runs:
+  "020017":
+    label: "c_only_inbending"
+    run_class: "solid_only"
+    polarity: "inbending"
+    target_config: "solid_only"
+    solid_target: "C"
+    beam_energy_gev: 10.6
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/C/dst/recon/020017"
+    output_root: "outputs/ntuples/020017.root"
+    enabled: true
+    notes: "C-only inbending run"
+
   "020026":
     label: "ld2_c_inbending"
     run_class: "ld2_solid"
@@ -11,183 +23,87 @@ runs:
     enabled: true
     notes: "LD2+C inbending run"
 
-  "020042":
-    label: "ld2_pb_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Pb"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Pb_D2/dst/recon/020042"
-    output_root: "outputs/ntuples/020042.root"
-    enabled: true
-    notes: "LD2+Pb inbending run"
-
-  "020046":
-    label: "ld2_pb_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Pb"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Pb_D2/dst/recon/020046"
-    output_root: "outputs/ntuples/020046.root"
-    enabled: true
-    notes: "LD2+Pb inbending run"
-
-  "020055":
-    label: "ld2_pb_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Pb"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Pb_D2/dst/recon/020055"
-    output_root: "outputs/ntuples/020055.root"
-    enabled: true
-    notes: "LD2+Pb inbending run"
-
-  "020059":
-    label: "ld2_pb_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Pb"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Pb_D2/dst/recon/020059"
-    output_root: "outputs/ntuples/020059.root"
-    enabled: true
-    notes: "LD2+Pb inbending run"
-
-  "020076":
-    label: "ld2_pb_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Pb"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Pb_D2/dst/recon/020076"
-    output_root: "outputs/ntuples/020076.root"
-    enabled: true
-    notes: "LD2+Pb inbending run"
-
-  "020082":
-    label: "ld2_pb_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Pb"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Pb_D2/dst/recon/020082"
-    output_root: "outputs/ntuples/020082.root"
-    enabled: true
-    notes: "LD2+Pb inbending run"
-
-  "020134":
+  "020150":
     label: "ld2_c_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
     solid_target: "C"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/C_D2/dst/recon/020134"
-    output_root: "outputs/ntuples/020134.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/C_D2/dst/recon/020150"
+    output_root: "outputs/ntuples/020150.root"
     enabled: true
     notes: "LD2+C inbending run"
 
-  "020144":
+  "020175":
     label: "ld2_c_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
     solid_target: "C"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/C_D2/dst/recon/020144"
-    output_root: "outputs/ntuples/020144.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/C_D2/dst/recon/020175"
+    output_root: "outputs/ntuples/020175.root"
     enabled: true
     notes: "LD2+C inbending run"
 
-  "020156":
-    label: "ld2_c_inbending"
+  "020437":
+    label: "ld2_al_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
-    solid_target: "C"
+    solid_target: "Al"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/C_D2/dst/recon/020156"
-    output_root: "outputs/ntuples/020156.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Al_D2/dst/recon/020437"
+    output_root: "outputs/ntuples/020437.root"
     enabled: true
-    notes: "LD2+C inbending run"
+    notes: "LD2+Al inbending run"
 
-  "020167":
-    label: "ld2_c_inbending"
+  "020485":
+    label: "ld2_al_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
-    solid_target: "C"
+    solid_target: "Al"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/C_D2/dst/recon/020167"
-    output_root: "outputs/ntuples/020167.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Al_D2/dst/recon/020485"
+    output_root: "outputs/ntuples/020485.root"
     enabled: true
-    notes: "LD2+C inbending run"
-
-  "020176":
-    label: "ld2_c_inbending"
+    notes: "LD2+Al inbending run"
+  
+  "020490":
+    label: "ld2_al_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
-    solid_target: "C"
+    solid_target: "Al"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/C_D2/dst/recon/020176"
-    output_root: "outputs/ntuples/020176.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Al_D2/dst/recon/020490"
+    output_root: "outputs/ntuples/020490.root"
     enabled: true
-    notes: "LD2+C inbending run"
+    notes: "LD2+Al inbending run"
 
-  "020185":
+  "020178":
     label: "ld2_cu_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
     solid_target: "Cu"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Cu_D2/dst/recon/020185"
-    output_root: "outputs/ntuples/020185.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Cu_D2/dst/recon/020178"
+    output_root: "outputs/ntuples/020178.root"
     enabled: true
     notes: "LD2+Cu inbending run"
 
-  "020195":
+  "020226":
     label: "ld2_cu_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
     solid_target: "Cu"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Cu_D2/dst/recon/020195"
-    output_root: "outputs/ntuples/020195.root"
-    enabled: true
-    notes: "LD2+Cu inbending run"
-
-  "020202":
-    label: "ld2_cu_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Cu"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Cu_D2/dst/recon/020202"
-    output_root: "outputs/ntuples/020202.root"
-    enabled: true
-    notes: "LD2+Cu inbending run"
-
-  "020216":
-    label: "ld2_cu_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Cu"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Cu_D2/dst/recon/020216"
-    output_root: "outputs/ntuples/020216.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Cu_D2/dst/recon/020226"
+    output_root: "outputs/ntuples/020226.root"
     enabled: true
     notes: "LD2+Cu inbending run"
 
@@ -203,161 +119,101 @@ runs:
     enabled: true
     notes: "LD2+Cu inbending run"
 
-  "020230":
-    label: "ld2_cu_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Cu"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Cu_D2/dst/recon/020230"
-    output_root: "outputs/ntuples/020230.root"
-    enabled: true
-    notes: "LD2+Cu inbending run"
-
-  "020334":
+  "020333":
     label: "ld2_sn_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
     solid_target: "Sn"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Sn_D2/dst/recon/020334"
-    output_root: "outputs/ntuples/020334.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Sn_D2/dst/recon/020333"
+    output_root: "outputs/ntuples/020333.root"
     enabled: true
     notes: "LD2+Sn inbending run"
 
-  "020339":
+  "020417":
     label: "ld2_sn_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
     solid_target: "Sn"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Sn_D2/dst/recon/020339"
-    output_root: "outputs/ntuples/020339.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Sn_D2/dst/recon/020417"
+    output_root: "outputs/ntuples/020417.root"
     enabled: true
     notes: "LD2+Sn inbending run"
 
-  "020342":
+  "020433":
     label: "ld2_sn_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
     solid_target: "Sn"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Sn_D2/dst/recon/020342"
-    output_root: "outputs/ntuples/020342.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Sn_D2/dst/recon/020433"
+    output_root: "outputs/ntuples/020433.root"
     enabled: true
     notes: "LD2+Sn inbending run"
 
-  "020346":
-    label: "ld2_sn_inbending"
+  "020045":
+    label: "ld2_pb_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
-    solid_target: "Sn"
+    solid_target: "Pb"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Sn_D2/dst/recon/020346"
-    output_root: "outputs/ntuples/020346.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Pb_D2/dst/recon/020045"
+    output_root: "outputs/ntuples/020045.root"
     enabled: true
-    notes: "LD2+Sn inbending run"
+    notes: "LD2+Pb inbending run"
 
-  "020350":
-    label: "ld2_sn_inbending"
+  "020082":
+    label: "ld2_pb_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
-    solid_target: "Sn"
+    solid_target: "Pb"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Sn_D2/dst/recon/020350"
-    output_root: "outputs/ntuples/020350.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Pb_D2/dst/recon/020082"
+    output_root: "outputs/ntuples/020082.root"
     enabled: true
-    notes: "LD2+Sn inbending run"
+    notes: "LD2+Pb inbending run"
 
-  "020360":
-    label: "ld2_sn_inbending"
+  "020326":
+    label: "ld2_pb_inbending"
     run_class: "ld2_solid"
     polarity: "inbending"
     target_config: "ld2_solid"
-    solid_target: "Sn"
+    solid_target: "Pb"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Sn_D2/dst/recon/020360"
-    output_root: "outputs/ntuples/020360.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Pb_D2/dst/recon/020326"
+    output_root: "outputs/ntuples/020326.root"
     enabled: true
-    notes: "LD2+Sn inbending run"
+    notes: "LD2+Pb inbending run"
 
-  "020438":
-    label: "ld2_al_inbending"
-    run_class: "ld2_solid"
+  "020274":
+    label: "pb_only_inbending"
+    run_class: "solid_only"
     polarity: "inbending"
-    target_config: "ld2_solid"
+    target_config: "solid_only"
+    solid_target: "Pb"
+    beam_energy_gev: 10.6
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Pb/dst/recon/020274"
+    output_root: "outputs/ntuples/020274.root"
+    enabled: true
+    notes: "Pb-only inbending run"
+
+  "020506":
+    label: "al_only_inbending"
+    run_class: "solid_only"
+    polarity: "inbending"
+    target_config: "solid_only"
     solid_target: "Al"
     beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Al_D2/dst/recon/020438"
-    output_root: "outputs/ntuples/020438.root"
+    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Al/dst/recon/020506"
+    output_root: "outputs/ntuples/020506.root"
     enabled: true
-    notes: "LD2+Al inbending run"
-
-  "020440":
-    label: "ld2_al_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Al"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Al_D2/dst/recon/020440"
-    output_root: "outputs/ntuples/020440.root"
-    enabled: true
-    notes: "LD2+Al inbending run"
-
-  "020442":
-    label: "ld2_al_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Al"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Al_D2/dst/recon/020442"
-    output_root: "outputs/ntuples/020442.root"
-    enabled: true
-    notes: "LD2+Al inbending run"
-
-  "020449":
-    label: "ld2_al_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Al"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Al_D2/dst/recon/020449"
-    output_root: "outputs/ntuples/020449.root"
-    enabled: true
-    notes: "LD2+Al inbending run"
-
-  "020453":
-    label: "ld2_al_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Al"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Al_D2/dst/recon/020453"
-    output_root: "outputs/ntuples/020453.root"
-    enabled: true
-    notes: "LD2+Al inbending run"
-
-  "020455":
-    label: "ld2_al_inbending"
-    run_class: "ld2_solid"
-    polarity: "inbending"
-    target_config: "ld2_solid"
-    solid_target: "Al"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus-1/Al_D2/dst/recon/020455"
-    output_root: "outputs/ntuples/020455.root"
-    enabled: true
-    notes: "LD2+Al inbending run"
+    notes: "Al-only inbending run"
 
   "020507":
     label: "empty_inbending"
@@ -383,54 +239,6 @@ runs:
     enabled: true
     notes: "LD2+C outbending run"
 
-  "020509":
-    label: "ld2_c_outbending"
-    run_class: "ld2_solid"
-    polarity: "outbending"
-    target_config: "ld2_solid"
-    solid_target: "C"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/C_D2/dst/recon/020509"
-    output_root: "outputs/ntuples/020509.root"
-    enabled: true
-    notes: "LD2+C outbending run"
-
-  "020510":
-    label: "ld2_c_outbending"
-    run_class: "ld2_solid"
-    polarity: "outbending"
-    target_config: "ld2_solid"
-    solid_target: "C"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/C_D2/dst/recon/020510"
-    output_root: "outputs/ntuples/020510.root"
-    enabled: true
-    notes: "LD2+C outbending run"
-
-  "020512":
-    label: "ld2_c_outbending"
-    run_class: "ld2_solid"
-    polarity: "outbending"
-    target_config: "ld2_solid"
-    solid_target: "C"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/C_D2/dst/recon/020512"
-    output_root: "outputs/ntuples/020512.root"
-    enabled: true
-    notes: "LD2+C outbending run"
-
-  "020514":
-    label: "ld2_c_outbending"
-    run_class: "ld2_solid"
-    polarity: "outbending"
-    target_config: "ld2_solid"
-    solid_target: "C"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/C_D2/dst/recon/020514"
-    output_root: "outputs/ntuples/020514.root"
-    enabled: true
-    notes: "LD2+C outbending run"
-
   "020515":
     label: "ld2_c_outbending"
     run_class: "ld2_solid"
@@ -440,42 +248,6 @@ runs:
     beam_energy_gev: 10.6
     input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/C_D2/dst/recon/020515"
     output_root: "outputs/ntuples/020515.root"
-    enabled: true
-    notes: "LD2+C outbending run"
-
-  "020516":
-    label: "ld2_c_outbending"
-    run_class: "ld2_solid"
-    polarity: "outbending"
-    target_config: "ld2_solid"
-    solid_target: "C"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/C_D2/dst/recon/020516"
-    output_root: "outputs/ntuples/020516.root"
-    enabled: true
-    notes: "LD2+C outbending run"
-
-  "020517":
-    label: "ld2_c_outbending"
-    run_class: "ld2_solid"
-    polarity: "outbending"
-    target_config: "ld2_solid"
-    solid_target: "C"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/C_D2/dst/recon/020517"
-    output_root: "outputs/ntuples/020517.root"
-    enabled: true
-    notes: "LD2+C outbending run"
-
-  "020518":
-    label: "ld2_c_outbending"
-    run_class: "ld2_solid"
-    polarity: "outbending"
-    target_config: "ld2_solid"
-    solid_target: "C"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/C_D2/dst/recon/020518"
-    output_root: "outputs/ntuples/020518.root"
     enabled: true
     notes: "LD2+C outbending run"
 
@@ -503,30 +275,6 @@ runs:
     enabled: true
     notes: "LD2+Pb outbending run"
 
-  "020521":
-    label: "ld2_pb_outbending"
-    run_class: "ld2_solid"
-    polarity: "outbending"
-    target_config: "ld2_solid"
-    solid_target: "Pb"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/Pb_D2/dst/recon/020521"
-    output_root: "outputs/ntuples/020521.root"
-    enabled: true
-    notes: "LD2+Pb outbending run"
-
-  "020522":
-    label: "ld2_pb_outbending"
-    run_class: "ld2_solid"
-    polarity: "outbending"
-    target_config: "ld2_solid"
-    solid_target: "Pb"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/Pb_D2/dst/recon/020522"
-    output_root: "outputs/ntuples/020522.root"
-    enabled: true
-    notes: "LD2+Pb outbending run"
-
   "020523":
     label: "ld2_pb_outbending"
     run_class: "ld2_solid"
@@ -536,18 +284,6 @@ runs:
     beam_energy_gev: 10.6
     input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/Pb_D2/dst/recon/020523"
     output_root: "outputs/ntuples/020523.root"
-    enabled: true
-    notes: "LD2+Pb outbending run"
-
-  "020524":
-    label: "ld2_pb_outbending"
-    run_class: "ld2_solid"
-    polarity: "outbending"
-    target_config: "ld2_solid"
-    solid_target: "Pb"
-    beam_energy_gev: 10.6
-    input_dir: "/cache/clas12/rg-e/production/spring2024/pass1/torus+1/Pb_D2/dst/recon/020524"
-    output_root: "outputs/ntuples/020524.root"
     enabled: true
     notes: "LD2+Pb outbending run"
 
