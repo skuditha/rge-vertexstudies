@@ -1,0 +1,36 @@
+cut_validation:
+  inputs:
+    runs_config: "configs/runs.yaml"
+    recommended_cuts_csv: "outputs/tables/ld2_solid_vertex_cuts_recommended.csv"
+
+  selection:
+    polarities: null
+    solid_targets: null
+    charges: ["negative", "positive"]
+    detector_regions: ["forward", "central"]
+    sectors: null
+    max_plots: null
+
+  representative_run:
+    strategy: "median_source_run"
+    enabled_only: true
+
+  histogram:
+    bins: 240
+    vz_min_cm: -12.0
+    vz_max_cm: 4.0
+    chi2pid_abs_max: null
+
+  plotting:
+    figure_width: 10.0
+    figure_height: 6.0
+    dpi: 180
+    logy: false
+    show_text_box: true
+    legend_fontsize: 9
+    title_fontsize: 12
+
+  outputs:
+    plots_dir: "outputs/plots/cut_validation"
+    plot_index_csv: "outputs/tables/cut_validation_plot_index.csv"
+    pdf_bundle: "outputs/plots/cut_validation/cut_validation_bundle.pdf"
