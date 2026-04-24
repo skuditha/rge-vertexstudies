@@ -1,0 +1,88 @@
+pid_study:
+  run_filter:
+    enabled_only: true
+    run_class: "ld2_solid"
+    polarities: null
+    solid_targets: null
+
+  histogram:
+    bins: 240
+    vz_min_cm: -12.0
+    vz_max_cm: 4.0
+
+  categories:
+    vertex_sources: ["particle", "ftrack", "hybrid"]
+    detector_regions: ["forward", "central"]
+    forward_sectors: ["all", 1, 2, 3, 4, 5, 6]
+    central_sectors: ["all"]
+    skip_central_ftrack: true
+
+  quality:
+    chi2pid_abs_max: null
+    min_entries_per_category: 1000
+    min_entries_per_local_window: 100
+
+  peak_finding:
+    enabled: true
+    smoothing_bins: 5
+    min_peak_counts: 20
+    min_relative_prominence: 0.04
+
+  local_background:
+    enabled: true
+    shape: "poly2"
+
+  components:
+    ld2:
+      signal_model: "box_gaussian"
+      expected_mean_cm: -6.5
+      search_window_cm: [-8.0, -5.0]
+      fit_window_cm: [-8.4, -4.6]
+      initial_sigma_cm: 0.35
+      sigma_bounds_cm: [0.05, 2.00]
+      initial_box_width_cm: 2.0
+      box_width_bounds_cm: [1.0, 3.0]
+
+    solid:
+      signal_model: "gaussian"
+      expected_mean_cm: -1.5
+      search_window_cm: [-2.3, -0.7]
+      fit_window_cm: [-2.7, -0.3]
+      initial_sigma_cm: 0.20
+      sigma_bounds_cm: [0.03, 1.50]
+
+  comparison_groups:
+    negative:
+      baseline: "charge_negative"
+      categories:
+        - name: "charge_negative"
+          charge: "negative"
+          pid: null
+        - name: "electron"
+          charge: "negative"
+          pid: 11
+        - name: "pi_minus"
+          charge: "negative"
+          pid: -211
+
+    positive:
+      baseline: "charge_positive"
+      categories:
+        - name: "charge_positive"
+          charge: "positive"
+          pid: null
+        - name: "proton"
+          charge: "positive"
+          pid: 2212
+        - name: "pi_plus"
+          charge: "positive"
+          pid: 211
+
+  outputs:
+    plots_dir: "outputs/plots"
+    per_run_fit_dir: "outputs/fits/pid_study_per_run"
+    per_run_table_dir: "outputs/tables/pid_study_per_run"
+    merged_fit_results_csv: "outputs/fits/pid_study_fit_results.csv"
+    merged_unresolved_csv: "outputs/tables/pid_study_unresolved_categories.csv"
+    merged_category_summary_csv: "outputs/tables/pid_study_category_summary.csv"
+    merged_comparison_csv: "outputs/tables/charge_vs_pid_comparison_summary.csv"

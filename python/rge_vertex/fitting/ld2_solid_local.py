@@ -36,17 +36,10 @@ def _component_fit_arrays(hist: HistogramResult, fit_row: dict[str, Any]) -> tup
         bkg_c2=fit_row["bkg_c2"] if fit_row["background_enabled"] else 0.0,
         box_width=fit_row.get("box_width"),
     )
-
     return local_centers, model, mask
 
 
-def plot_local_ld2_solid_summary(
-    hist: HistogramResult,
-    fit_rows: list[dict[str, Any]],
-    *,
-    title: str,
-    output_path: str | Path,
-) -> None:
+def plot_local_ld2_solid_summary(hist: HistogramResult, fit_rows: list[dict[str, Any]], *, title: str, output_path: str | Path) -> None:
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -56,6 +49,7 @@ def plot_local_ld2_solid_summary(
     for row in fit_rows:
         comp = row["component"]
         ax.axvspan(row["fit_window_low"], row["fit_window_high"], alpha=0.08)
+
         if row["fit_status"] in ("good", "bad_fit") and np.isfinite(row.get("mean", np.nan)):
             local_centers, model, _ = _component_fit_arrays(hist, row)
             if local_centers.size > 0:
@@ -95,6 +89,8 @@ def build_category_summary(
     sector: int | str,
     hist: HistogramResult,
     fit_rows: list[dict[str, Any]],
+    pid: int | None = None,
+    pid_category: str | None = None,
 ) -> dict[str, Any]:
     ld2 = _component_row_lookup(fit_rows, "ld2")
     solid = _component_row_lookup(fit_rows, "solid")
@@ -108,6 +104,8 @@ def build_category_summary(
         "target_config": meta.get("target_config", ""),
         "vertex_source": vertex_source,
         "charge": charge,
+        "pid": pid,
+        "pid_category": pid_category if pid_category is not None else "charge_only",
         "detector_region": detector_region,
         "sector": sector,
         "entries_category": hist.entries,
@@ -180,6 +178,8 @@ def fit_ld2_solid_local_category(
     sector: int | str,
     config: dict[str, Any],
     output_plot: str | Path,
+    pid: int | None = None,
+    pid_category: str | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
     hist_cfg = config["histogram"]
     quality_cfg = config.get("quality", {})
@@ -193,6 +193,7 @@ def fit_ld2_solid_local_category(
         charge=charge,
         detector_region=detector_region,
         sector=sector,
+        pid=pid,
         chi2pid_abs_max=quality_cfg.get("chi2pid_abs_max"),
         bins=int(hist_cfg["bins"]),
         vz_range=(float(hist_cfg["vz_min_cm"]), float(hist_cfg["vz_max_cm"])),
@@ -216,6 +217,8 @@ def fit_ld2_solid_local_category(
                 "target_config": meta.get("target_config", ""),
                 "vertex_source": vertex_source,
                 "charge": charge,
+                "pid": pid,
+                "pid_category": pid_category if pid_category is not None else "charge_only",
                 "detector_region": detector_region,
                 "sector": sector,
                 "component": component,
@@ -248,7 +251,11 @@ def fit_ld2_solid_local_category(
             fit_rows.append(row)
             unresolved_rows.append(row)
 
-        category_summary = build_category_summary(run=run, meta=meta, vertex_source=vertex_source, charge=charge, detector_region=detector_region, sector=sector, hist=hist, fit_rows=fit_rows)
+        category_summary = build_category_summary(
+            run=run, meta=meta, vertex_source=vertex_source, charge=charge,
+            detector_region=detector_region, sector=sector, hist=hist, fit_rows=fit_rows,
+            pid=pid, pid_category=pid_category,
+        )
         plot_local_ld2_solid_summary(hist, fit_rows, title=f"Run {run}: low-stat category", output_path=output_plot)
         return fit_rows, unresolved_rows, category_summary
 
@@ -279,24 +286,32 @@ def fit_ld2_solid_local_category(
         row["polarity"] = meta.get("polarity", "")
         row["solid_target"] = meta.get("solid_target", "")
         row["target_config"] = meta.get("target_config", "")
+        row["pid"] = pid
+        row["pid_category"] = pid_category if pid_category is not None else "charge_only"
         fit_rows.append(row)
         if row["fit_status"] != "good":
             unresolved_rows.append(row)
 
+    pid_text = f", {pid_category}" if pid_category is not None else ""
     title = (
         f"Run {run}: local LD2 + solid fits\n"
         f"{meta.get('polarity', '')}, LD2+{meta.get('solid_target', '')}, "
-        f"{vertex_source}.vz, {charge}, {detector_region}, sector={sector}"
+        f"{vertex_source}.vz, {charge}{pid_text}, {detector_region}, sector={sector}"
     )
     if detector_region == "central":
         title = (
             f"Run {run}: local LD2 + solid fits\n"
             f"{meta.get('polarity', '')}, LD2+{meta.get('solid_target', '')}, "
-            f"{vertex_source}.vz, {charge}, central detector"
+            f"{vertex_source}.vz, {charge}{pid_text}, central detector"
         )
 
     plot_local_ld2_solid_summary(hist, fit_rows, title=title, output_path=output_plot)
-    category_summary = build_category_summary(run=run, meta=meta, vertex_source=vertex_source, charge=charge, detector_region=detector_region, sector=sector, hist=hist, fit_rows=fit_rows)
+
+    category_summary = build_category_summary(
+        run=run, meta=meta, vertex_source=vertex_source, charge=charge,
+        detector_region=detector_region, sector=sector, hist=hist, fit_rows=fit_rows,
+        pid=pid, pid_category=pid_category,
+    )
     return fit_rows, unresolved_rows, category_summary
 
 
